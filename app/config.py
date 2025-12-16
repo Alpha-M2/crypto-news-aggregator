@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -6,6 +7,11 @@ RSS_FEEDS = [
     "https://cryptonews.com/news/feed/",
     "https://cointelegraph.com/rss",
     "https://news.bitcoin.com/feed/",
+    "https://messari.io/rss",
+    "https://cryptorank.io/rss",
+    "https://www.todayonchain.com/rss",
+    "https://www.coingecko.com/en/rss",
+    "https://coinmarketcap.com/headlines/rss",
 ]
 
 SCRAPE_SOURCES = [
@@ -18,6 +24,6 @@ SCRAPE_SOURCES = [
 
 COINS = ["BTC", "Bitcoin", "ETH", "Ethereum", "SOL", "Solana"]
 
-MONGO_URI = "mongodb://localhost:27017/"
+MONGO_URI = os.getenv("MONGO_URI")
 DB_NAME = "crypto_news"
 COLLECTION_NAME = "articles"

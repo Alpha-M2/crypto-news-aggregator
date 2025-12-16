@@ -1,6 +1,6 @@
 from transformers import pipeline
 
-summarizer = pipeline("summarization")
+summarizer = pipeline("summarization", model="t5-small", tokenizer="t5-small")
 
 
 def summarize_articles(articles):

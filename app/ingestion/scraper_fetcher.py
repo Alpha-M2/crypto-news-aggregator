@@ -1,20 +1,29 @@
-import requests
-from bs4 import BeautifulSoup
+import feedparser
+from app.config import RSS_FEEDS
 
 
-def fetch_scraped_articles(scrape_sources):
+def fetch_scraped_articles(scrape_sources=RSS_FEEDS):
     """
-    Generic scraper framework.
-    Site specific parsing will be added incrementally.
+    Fetch articles from RSS feeds.
+    Maintains original structure of scraper_fetcher.py
     """
     articles = []
 
     for source in scrape_sources:
         try:
-            response = requests.get(source["url"], timeout=10)
-            BeautifulSoup(response.text, "html.parser")
+            feed = feedparser.parse(source["url"])
+            for entry in feed.entries:
+                articles.append(
+                    {
+                        "title": entry.title,
+                        "link": entry.link,
+                        "published": entry.get("published", ""),
+                        "summary": entry.get("summary", ""),
+                        "source": source["name"],
+                    }
+                )
 
-            print(f"[INFO] Scraper stub initialized for {source['name']}")
+            print(f"[INFO] Scraper initialized for {source['name']}")
 
         except Exception as e:
             print(f"[ERROR] Failed to scrape {source['name']}: {e}")
