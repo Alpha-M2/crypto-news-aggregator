@@ -12,6 +12,11 @@ from app.ingestion.api_fetcher import fetch_api_articles
 from app.processing.filter import filter_by_coin
 from app.processing.summarizer import summarize_articles
 from app.storage.mongodb import save_articles
+from app.logger import get_logger
+
+logger = get_logger()
+logger.info("Pipeline started")
+logger.error("Error scraping source X")
 
 
 def run_pipeline():

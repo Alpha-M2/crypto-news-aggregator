@@ -1,31 +1,26 @@
-import feedparser
-from app.config import RSS_FEEDS
+import requests
+from bs4 import BeautifulSoup
+from time import sleep
+from app.logger import get_logger
+
+logger = get_logger()
 
 
-def fetch_scraped_articles(scrape_sources=RSS_FEEDS):
-    """
-    Fetch articles from RSS feeds.
-    Maintains original structure of scraper_fetcher.py
-    """
+def fetch_scraped_articles(scrape_sources, retries=3):
     articles = []
 
     for source in scrape_sources:
-        try:
-            feed = feedparser.parse(source["url"])
-            for entry in feed.entries:
-                articles.append(
-                    {
-                        "title": entry.title,
-                        "link": entry.link,
-                        "published": entry.get("published", ""),
-                        "summary": entry.get("summary", ""),
-                        "source": source["name"],
-                    }
+        attempt = 0
+        while attempt < retries:
+            try:
+                response = requests.get(source["url"], timeout=10)
+                BeautifulSoup(response.text, "html.parser")
+                logger.info(f"Scraper initialized for {source['name']}")
+                break
+            except requests.RequestException as e:
+                attempt += 1
+                logger.error(
+                    f"Failed scraping {source['name']}: {e}, retry {attempt}/{retries}"
                 )
-
-            print(f"[INFO] Scraper initialized for {source['name']}")
-
-        except Exception as e:
-            print(f"[ERROR] Failed to scrape {source['name']}: {e}")
-
+                sleep(2)
     return articles

@@ -1,26 +1,14 @@
 from transformers import pipeline
 
-summarizer = pipeline("summarization", model="t5-small", tokenizer="t5-small")
+summarizer = pipeline("summarization", model="t5-small", tokenizer="t5-small", device=0)
 
 
 def summarize_articles(articles):
     summarized = []
-
     for article in articles:
-        try:
-            summary = summarizer(
-                article["summary"], max_length=60, min_length=25, do_sample=False
-            )[0]["summary_text"]
-        except Exception:
-            summary = article["summary"][:150]
-
-        summarized.append(
-            {
-                "title": article["title"],
-                "link": article["link"],
-                "summary": summary,
-                "source": article["source"],
-            }
-        )
-
+        text = article.get("content", "")
+        if text:
+            summary = summarizer(text, max_new_tokens=150)[0]["summary_text"]
+            article["summary"] = summary
+            summarized.append(article)
     return summarized
