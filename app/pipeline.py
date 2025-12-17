@@ -1,5 +1,5 @@
 import hashlib
-import time
+from datetime import datetime, timezone
 
 from app.config import (
     RSS_FEEDS,
@@ -31,7 +31,6 @@ def normalize_articles(raw_articles):
 
     for raw in raw_articles:
         url = raw.get("link") or raw.get("url")
-
         if not url:
             continue
 
@@ -41,6 +40,7 @@ def normalize_articles(raw_articles):
             "url": url,
             "summary": raw.get("summary", ""),
             "source": raw.get("source", ""),
+            "created_at": datetime.now(timezone.utc),
         }
 
         normalized.append(article)

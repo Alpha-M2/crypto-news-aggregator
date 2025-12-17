@@ -26,9 +26,7 @@ def fetch_articles(uri, db_name, collection_name, limit=20):
     client = MongoClient(uri)
     collection = client[db_name][collection_name]
 
-    articles = list(collection.find({}, {"_id": 0}).sort("created_at", -1).limit(limit))
-
-    return articles
+    return list(collection.find({}, {"_id": 0}).sort("created_at", -1).limit(limit))
 
 
 def ensure_indexes(uri, db_name, collection_name):
