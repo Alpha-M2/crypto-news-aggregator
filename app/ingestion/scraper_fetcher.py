@@ -15,7 +15,10 @@ def fetch_scraped_articles(scrape_sources, retries=3):
             try:
                 response = requests.get(source["url"], timeout=10)
                 BeautifulSoup(response.text, "html.parser")
-                logger.info(f"Scraper initialized for {source['name']}")
+                logger.info(
+                    f"Scraper initialized for {source['name']} ({source['url']})"
+                )
+
                 break
             except requests.RequestException as e:
                 attempt += 1
