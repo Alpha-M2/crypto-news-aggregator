@@ -44,8 +44,27 @@ def deactivate_subscription(chat_id: int):
     )
 
 
-def get_active_subscriptions():
+def get_active_subscriptions_with_last_delivered():
+    """Return active subscriptions including last_delivered_at."""
     client = MongoClient(MONGO_URI)
     collection = client[DB_NAME][COLLECTION]
 
-    return list(collection.find({"active": True}))
+    return list(
+        collection.find({"active": True}, {"chat_id": 1, "last_delivered_at": 1})
+    )
+
+
+def update_last_delivered(chat_id: int, timestamp: datetime):
+    """Persist the last delivered article timestamp for a subscription."""
+    client = MongoClient(MONGO_URI)
+    collection = client[DB_NAME][COLLECTION]
+
+    collection.update_one(
+        {"chat_id": chat_id},
+        {
+            "$set": {
+                "last_delivered_at": timestamp,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        },
+    )
