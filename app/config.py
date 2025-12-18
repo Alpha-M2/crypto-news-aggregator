@@ -3,6 +3,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+
+MONGO_URI = os.getenv("MONGO_URI")
+
+DB_NAME = "crypto_news"
+COLLECTION_NAME = "articles"
+
+
 RSS_FEEDS = [
     "https://cryptonews.com/news/feed/",
     "https://cointelegraph.com/rss",
@@ -23,7 +31,3 @@ SCRAPE_SOURCES = [
 ]
 
 COINS = ["BTC", "Bitcoin", "ETH", "Ethereum", "SOL", "Solana"]
-
-MONGO_URI = os.getenv("MONGO_URI")
-DB_NAME = "crypto_news"
-COLLECTION_NAME = "articles"
