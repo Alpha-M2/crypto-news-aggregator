@@ -39,7 +39,7 @@ def clean_text(text: str) -> str:
 
     # Collapse whitespace
     text = re.sub(r"\s+", " ", text)
-    return text
+    return text.strip()
 
 
 async def delivery_loop(bot: Bot):

@@ -1,90 +1,168 @@
-# Crypto News Aggregator
+## Crypto News Aggregator with Telegram Bot (BlockoraBot)
 
-A modular Python backend that ingests cryptocurrency news, summarizes content using transformer models, stores results in MongoDB, and exposes them via a REST API.
+A production-grade crypto news aggregation pipeline that collects, normalizes, deduplicates, summarizes, and delivers real-time crypto news directly to Telegram subscribers.
 
-This project is intentionally built step-by-step to demonstrate real-world backend engineering practices: pipeline design, data processing, persistence, and service delivery.
-
----
-
-## What This Project Does (Today)
-
-✔ Scrapes multiple crypto news sources (stub-based, extensible)  
-✔ Summarizes article text using a lightweight transformer model (`t5-small`)  
-✔ Persists summarized articles to MongoDB Atlas  
-✔ Exposes stored articles via a Flask REST API  
-✔ Uses a clear ingestion → processing → storage → delivery pipeline  
-✔ Designed for incremental production hardening  
+**Live Bot:** @BlockoraBot
+**Tech Stack:** Python, MongoDB, RSS, Web Scraping, AsyncIO, Telegram Bot API
 
 ---
 
-## Architecture Overview
+## Overview
 
-The system is organized as a pipeline with clearly defined responsibilities:
+This project continuously aggregates crypto news from multiple sources (RSS feeds and scraped sites), processes the data through a robust pipeline, and delivers clean, readable summaries to Telegram users on demand.
 
-Ingestion → Processing → Storage → Delivery
+Users interact via Telegram commands:
 
-Each layer is isolated, testable, and replaceable.
+* `/start` — begin receiving crypto news
+* `/stop` — stop delivery at any time
+
+Delivery is **stateful per user**, ensuring:
+
+* No duplicate articles
+* Independent delivery timelines per subscriber
+* Safe restarts with accurate resume points
 
 ---
 
-## Technology Stack
+## Key Features
 
-- Python 3.11
-- uv (dependency & environment management)
-- Requests + BeautifulSoup (scraping)
-- Hugging Face Transformers (`t5-small`)
-- MongoDB Atlas
-- Flask (API delivery)
+### News Aggregation
+
+* RSS ingestion from major crypto outlets
+* Web scraping fallback for poorly structured feeds
+* Normalized article schema across sources
+
+### Data Processing Pipeline
+
+* Deterministic article IDs for deduplication
+* MongoDB-backed persistence
+* UTC-based timestamps for consistent ordering
+* Clean HTML stripping using BeautifulSoup
+
+### Telegram Bot Integration
+
+* Multi-subscriber support
+* `/start` and `/stop` command handling
+* Background async delivery loop
+* Per-user `last_delivered_at` tracking
+* Clean, readable message formatting
+
+### Reliability & Safety
+
+* Duplicate-safe inserts
+* HTML sanitization
+* Robust async error handling
+* Non-blocking Telegram polling
+
+---
+
+## Requirements
+
+* Python 3.10+
+* MongoDB (local or cloud)
+* Telegram Bot Token
+* `uv` package manager
 
 ---
 
 ## Setup Instructions
 
-### 1. Environment Setup
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Alpha-M2/crypto-news-aggregator.git
+cd crypto-news-aggregator
+```
+
+### 2. Create Virtual Environment
 
 ```bash
 uv venv
 source .venv/bin/activate
+```
+
+### 3. Install Dependencies
+
+```bash
 uv sync
 ```
 
-### 2. Configuration
+### 4. Environment Variables
 
-Edit config.py and set your MongoDB Atlas connection:
+Create a `.env` file:
 
-```bash
-MONGO_URI = "mongodb+srv://<username>:<password>@<cluster>.mongodb.net/"
-DB_NAME = "crypto_news"
-COLLECTION_NAME = "articles"
+```env
+MONGO_URI=mongodb://localhost:27017
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
 ```
 
-### 3. Run the Pipeline
+---
 
-This executes ingestion → summarization → storage.
+## Running the Pipeline (News Ingestion)
+
+Fetches, processes, and stores news articles:
 
 ```bash
 uv run python run.py
 ```
 
-### 4. Run the API Server
+This can be scheduled using cron or a job runner.
+
+---
+
+## Running the Telegram Bot
+
+Starts the Telegram bot and delivery loop:
+
 ```bash
-uv run python -m app.web
+uv run python run_bot.py
 ```
-Available endpoints:
 
-GET /health – service health check
+Then on Telegram:
 
-GET /articles – fetch latest stored articles
+1. Search for **@BlockoraBot**
+2. Send `/start` to subscribe
+3. Send `/stop` to unsubscribe
 
+---
 
-### Why This Project Exists
+## How Delivery Works
 
-This repository is designed to:
+* Each subscriber is stored in MongoDB
+* `last_delivered_at` is updated after each successful send
+* On restart, delivery resumes safely
+* Duplicate messages are prevented by design
 
-Demonstrate backend and data pipeline engineering skills
+---
 
-Show clean separation of concerns
+## Deployment Notes
 
-Be readable, extensible, and production-oriented
+To run 24/7, the bot must be deployed to an always-on server (VPS or cloud service). Local execution will stop when the terminal closes.
 
-Reflect how real systems evolve, not toy scripts
+Recommended:
+
+* VPS (DigitalOcean, Hetzner, AWS EC2)
+* `systemd` or Docker for process management
+
+---
+
+## Future Improvements
+
+* Per-coin subscriptions
+* Inline pause/resume buttons
+* Message batching and rate limiting
+* Dockerized deployment
+* Monitoring and alerting
+
+---
+
+## License
+
+MIT License
+
+---
+
+## Author
+
+Built by **Alpha_M2**
+Backend-focused engineer with emphasis on async systems and production-ready Python.
