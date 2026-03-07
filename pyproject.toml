@@ -12,6 +12,7 @@ dependencies = [
 
 [project.optional-dependencies]
 worker = [
+    "aiohttp>=3.9.3",
     "beautifulsoup4>=4.14.3",
     "feedparser>=6.0.12",
     "ipykernel>=7.1.0",

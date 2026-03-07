@@ -42,6 +42,33 @@ def clean_text(text: str) -> str:
     return text.strip()
 
 
+async def send_to_subscriber(bot: Bot, sub: dict):
+    last_delivered = sub.get("last_delivered_at") or datetime(
+        1970, 1, 1, tzinfo=timezone.utc
+    )
+
+    articles = fetch_undelivered_articles(last_delivered)
+
+    for article in articles:
+        title = clean_text(article.get("title", ""))
+        summary = clean_text(article.get("summary", ""))
+        message = f"<b>{title}</b>\n\n{summary}\n\n{article['url']}"
+
+        try:
+            await bot.send_message(
+                chat_id=sub["chat_id"],
+                text=message,
+                parse_mode="HTML",
+                disable_web_page_preview=True,
+            )
+
+            update_last_delivered(sub["chat_id"], article["created_at"])
+
+        except Exception as e:
+            print(f"Failed to send article to {sub['chat_id']}: {e}")
+            continue
+
+
 async def delivery_loop(bot: Bot):
     print("Delivery loop started")
 
@@ -49,31 +76,9 @@ async def delivery_loop(bot: Bot):
         try:
             subscriptions = get_active_subscriptions_with_last_delivered()
 
-            for sub in subscriptions:
-                last_delivered = sub.get("last_delivered_at") or datetime(
-                    1970, 1, 1, tzinfo=timezone.utc
-                )
-
-                articles = fetch_undelivered_articles(last_delivered)
-
-                for article in articles:
-                    title = clean_text(article.get("title", ""))
-                    summary = clean_text(article.get("summary", ""))
-                    message = f"<b>{title}</b>\n\n{summary}\n\n{article['url']}"
-
-                    try:
-                        await bot.send_message(
-                            chat_id=sub["chat_id"],
-                            text=message,
-                            parse_mode="HTML",
-                            disable_web_page_preview=True,
-                        )
-
-                        update_last_delivered(sub["chat_id"], article["created_at"])
-
-                    except Exception as e:
-                        print(f"Failed to send article to {sub['chat_id']}: {e}")
-                        continue
+            if subscriptions:
+                tasks = [send_to_subscriber(bot, sub) for sub in subscriptions]
+                await asyncio.gather(*tasks)
 
         except Exception as e:
             print(f"Delivery loop error: {e}")

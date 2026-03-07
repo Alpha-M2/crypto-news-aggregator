@@ -11,9 +11,11 @@ from app.config import (
 )
 from app.storage.mongodb import ensure_indexes
 
-from app.ingestion.rss_fetcher import fetch_rss_articles
-from app.ingestion.scraper_fetcher import fetch_scraped_articles
-from app.ingestion.api_fetcher import fetch_api_articles
+import asyncio
+
+from app.ingestion.rss_fetcher import fetch_rss_articles_async
+from app.ingestion.scraper_fetcher import fetch_scraped_articles_async
+from app.ingestion.api_fetcher import fetch_api_articles_async
 from app.processing.filter import filter_by_coin
 from app.processing.summarizer import summarize_articles
 from app.storage.mongodb import save_articles
@@ -48,18 +50,22 @@ def normalize_articles(raw_articles):
     return normalized
 
 
-def run_pipeline():
+async def run_pipeline():
     logger.info("Pipeline run started")
 
     ensure_indexes(MONGO_URI, DB_NAME, COLLECTION_NAME)
 
-    rss_articles = fetch_rss_articles(RSS_FEEDS)
+    # Fetch concurrently
+    rss_task = fetch_rss_articles_async(RSS_FEEDS)
+    scrape_task = fetch_scraped_articles_async(SCRAPE_SOURCES)
+    api_task = fetch_api_articles_async()
+
+    rss_articles, scraped_articles, api_articles = await asyncio.gather(
+        rss_task, scrape_task, api_task
+    )
+
     logger.info(f"RSS articles fetched: {len(rss_articles)}")
-
-    scraped_articles = fetch_scraped_articles(SCRAPE_SOURCES)
     logger.info(f"Scraped articles fetched: {len(scraped_articles)}")
-
-    api_articles = fetch_api_articles()
     logger.info(f"API articles fetched: {len(api_articles)}")
 
     raw_articles = rss_articles + scraped_articles + api_articles
