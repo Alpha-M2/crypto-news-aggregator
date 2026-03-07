@@ -84,7 +84,7 @@ source .venv/bin/activate
 ### 3. Install Dependencies
 
 ```bash
-uv sync
+uv sync --all-extras
 ```
 
 ### 4. Environment Variables
